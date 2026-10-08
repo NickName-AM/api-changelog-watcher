@@ -1,0 +1,6 @@
+# Copy to .dev.vars for `wrangler dev`. Leave the Supabase pair empty to run
+# without writing anywhere (results are only logged).
+SUPABASE_URL=
+SUPABASE_WATCH_KEY=
+RUN_TOKEN=change-me
+ENABLE_DEBUG=true

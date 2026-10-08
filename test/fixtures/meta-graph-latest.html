@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Fixture</title><script>/* page chrome, trimmed */ fbq("track", "PageView");</script></head>
+<body>
+<h1>Version 26.0</h1>
+</div></div><div class="_4-u2 _57mb _1u44 _3fw6 _4-u8"><div class="_4-u3 _588p"><h2>Graph API</h2>
+
+<p><strong>Released</strong> July 29, 2026 | <strong>Available until</strong> TBD | <a href="/blog/post/2026/07/29/introducing-graph-api-v26-and-marketing-api-v26/">Blog post</a>`</p>
+
+<h3>Commerce Order Management API</h3>
+<h4>Commerce Order Management API deprecation</h4>
+
+<p><em>Applies to v26.0+. Applies to all remaining Graph API versions on October 27, 2026.</em></p>
+
+<p>Checkout directly on Facebook and Instagram for Shops has been sunset. Because the underlying commerce-order infrastructure is being retired, the Commerce Order Management API is deprecated. Calls on v26.0 and later are blocked beginning July 29, 2026. The affected surfaces are removed from all remaining versions on October 27, 2026. No replacement API is available.</p>
+
+<p>The complete deprecation covers 47 endpoints. Affected and representative endpoints include:</p>
+
+<ul>
+<li><code>GET /&#123;commerce-order-id&#125;</code></li>
+<li><code>GET /&#123;commerce-order-id&#125;/items</code></li>
+<li><code>GET /&#123;commerce-order-id&#125;/payments</code></li>
+<li><code>GET /&#123;commerce-order-id&#125;/payment_transaction_details</code></li>
+<li><code>GET /&#123;commerce-order-id&#125;/refunds</code></li>
+<li><code>GET /&#123;commerce-order-id&#125;/shipments</code></li>
+<li><code>GET /&#123;commerce-order-id&#125;/cancellations</code></li>
+<li><code>GET /&#123;page-id&#125;/commerce_orders</code></li>
+<li><code>GET /&#123;commerce-merchant-settings-id&#125;/commerce_orders</code></li>
+<li><code>GET /&#123;commerce-merchant-settings-id&#125;/commerce_returns</code></li>
+<li><code>GET /&#123;commerce-return-id&#125;</code></li>
+<li><code>GET /&#123;order-item-id&#125;</code></li>
+<li><code>GET /&#123;order-item-id&#125;/tax_details</code></li>
+<li><code>GET /&#123;order-item-id&#125;/captured_tax_details</code></li>
+<li><code>GET /&#123;order-item-id&#125;/gifting_details</code></li>
+<li><code>GET /&#123;order-id&#125;/status</code></li>
+<li><code>GET /&#123;order-id&#125;/tax</code></li>
+<li><code>GET /&#123;order-id&#125;/payment</code></li>
+<li><code>GET /&#123;order-id&#125;/payment_details</code></li>
+<li><code>GET /&#123;order-id&#125;/buyer_details</code></li>
+<li><code>GET /&#123;order-id&#125;/shipping_option</code></li>
+<li><code>GET /&#123;order-id&#125;/estimated_arrival</code></li>
+<li><code>GET /&#123;order-id&#125;/loyalty</code></li>
+<li><code>GET /&#123;order-id&#125;/payment_shipments</code></li>
+<li><code>GET /&#123;order-id&#125;/payment_subtotal_details</code></li>
+<li><code>GET /&#123;order-id&#125;/fulfillment_address</code></li>
+<li><code>GET /&#123;commerce-order-shipment-id&#125;/items</code></li>
+<li><code>GET /&#123;shipment-id&#125;</code></li>
+<li><code>GET /&#123;shipment-item-id&#125;</code></li>
+<li><code>GET /&#123;shipment-id&#125;/tracking_info</code></li>
+<li><code>GET /&#123;transaction-detail-id&#125;</code></li>
+<li><code>GET /&#123;commerce-merchant-fulfillment-location-id&#125;</code></li>
+<li><code>GET /&#123;cancellation-id&#125;</code></li>
+<li><code>GET /&#123;commerce-order-cancellation-id&#125;/items</code></li>
+<li><code>GET /&#123;cancellation-item-id&#125;</code></li>
+<li><code>GET /&#123;cancel-reason-id&#125;</code></li>
+<li><code>GET /&#123;payment-id&#125;/items</code></li>
+<li><code>GET /&#123;refund-id&#125;</code></li>
+<li><code>GET /&#123;refund-item-id&#125;</code></li>
+<li><code>GET /&#123;refund-id&#125;/amount</code></li>
+<li><code>GET /&#123;refund-id&#125;/items</code></li>
+<li><code>GET /&#123;commerce-merchant-settings-id&#125;/tax_settings</code></li>
+<li><code>GET /&#123;commerce-merchant-tax-settings-id&#125;</code></li>
+<li><code>GET /&#123;tax-settings-id&#125;/fulfillment_locations</code></li>
+<li><code>GET /&#123;tax-settings-id&#125;/default_fulfillment_location</code></li>
+<li><code>GET /&#123;commerce-order-subtotal-details-id&#125;</code></li>
+<li><code>GET /&#123;commerce-address-id&#125;</code></li>
+</ul>
+
+<h3>Rights Manager</h3>
+<h4>Rights Manager owner fields migrated to RightsHolderOwner</h4>
+
+<p><em>Applies to v26.0+. Deprecated fields remain available on v25.0 and earlier for two years after launch.</em></p>
+
+<p>The <code>reference_owner</code>, <code>matched_reference_owner</code>, <code>sending_rights_holder</code>, and <code>receiving_rights_holder</code> fields are deprecated. Migrate to fields returning the dedicated <code>RightsHolderOwner</code> type:</p>
+
+<ul>
+<li><code>reference_owner_rh_owner</code> replaces <code>reference_owner</code>.</li>
+<li><code>matched_reference_owner_rh_owner</code> replaces <code>matched_reference_owner</code>.</li>
+<li><code>sending_rights_holder_owner</code> replaces <code>sending_rights_holder</code>.</li>
+<li><code>receiving_rights_holder_owner</code> replaces <code>receiving_rights_holder</code>.</li>
+</ul>
+
+<h3>Graph API protocol</h3>
+<h4>Legacy Graph API protocol features deprecated</h4>
+
+<p><em>Applies to v26.0+ beginning July 29, 2026. Applies to all remaining supported Graph API versions beginning October 27, 2026.</em></p>
+
+<p>Graph API no longer supports these legacy protocol behaviors:</p>
+
+<ul>
+<li>The <code>pretty</code> query parameter is ignored, and JSON responses use compact formatting.</li>
+<li>The <code>debug</code> query parameter is ignored, and no debug response envelope is added. The <code>debug_token</code> endpoint is unaffected.</li>
+<li>Requests that include <code>date_format</code> return an error. Use the default date format and convert values in client code if needed.</li>
+<li>Root requests using <code>GET /?ids=...</code> return an error. Use per-object requests or supported batching.</li>
+<li>The <code>If-None-Match</code> query parameter is ignored. Legacy <code>ETag</code> response headers and <code>304 Not Modified</code> behavior are removed, and requests return full responses.</li>
+</ul>
+
+<h3>Page</h3>
+<h4>Deprecation of legacy Page fields for New Pages Experience</h4>
+
+<p><em>Applies to v26.0+. Will apply to all versions approximately 90 days after the v26.0 launch; date to be confirmed.</em></p>
+
+<p>For New Pages Experience pages, the <code>current_location</code>, <code>genre</code>, <code>network</code>, <code>parking</code>, and <code>start_info</code> fields are deprecated because they are no longer maintained. On v26.0 and later, requests for these fields return a version error. The <code>auto_publish_page_info_updates</code> setting is also removed from the Page settings edge for these pages.</p>
+
+<p>There is no replacement. Remove these fields and the setting from requests. Regular Pages are not affected.</p>
+
+<p>Affected requests:</p>
+
+<ul>
+<li><code>GET /&#123;page-id&#125;?fields=current_location</code></li>
+<li><code>GET /&#123;page-id&#125;?fields=genre</code></li>
+<li><code>GET /&#123;page-id&#125;?fields=network</code></li>
+<li><code>GET /&#123;page-id&#125;?fields=parking</code></li>
+<li><code>GET /&#123;page-id&#125;?fields=start_info</code></li>
+<li><code>GET /&#123;page-id&#125;?fields=settings</code></li>
+</ul>
+</div></div><div class="_4-u2 _57mb _1u44 _3fw6 _4-u8"><div class="_4-u3 _588p"><h2>Marketing API</h2>
+
+<p><strong>Released</strong> July 29, 2026 | <strong>Available until</strong> TBD | <a href="/blog/post/2026/07/29/introducing-graph-api-v26-and-marketing-api-v26/">Blog post</a></p>
+
+<h3>Delivery Estimate</h3>
+<h4>Delivery Estimate field removal</h4>
+
+<p><em>Applies to v26.0+. Applies to all remaining supported versions on October 27, 2026.</em></p>
+
+<p>The <code>daily_outcomes_curve</code>, <code>budget_guardrail</code>, and <code>estimate_dau</code> fields are removed from Delivery Estimate responses because the service powering these values has been deprecated. No replacement API is available. Remove usage of these fields before the applicable removal date.</p>
+
+<p>Affected endpoints:</p>
+
+<ul>
+<li><code>GET /&#123;ad-account-id&#125;/delivery_estimate</code></li>
+<li><code>GET /&#123;adset-id&#125;/delivery_estimate</code></li>
+</ul>
+
+<h3>Ads in WhatsApp Status</h3>
+<h4>Expanded Ads in WhatsApp Status support</h4>
+
+<p><em>Applies to v26.0+.</em></p>
+
+<p>Ads in WhatsApp Status add identity, targeting, optimization, and creative capabilities:</p>
+
+<ul>
+<li>Ad creatives can include <code>wamo_whatsapp_identity_spec</code> to deliver ads in WhatsApp Status.</li>
+<li><code>user_age_unknown</code> defaults to <code>true</code> when WhatsApp Status is selected.</li>
+<li>Offsite-conversion optimization is supported for Sales, Leads, and Engagement objectives. Landing Page Views optimization is also supported.</li>
+<li>Carousel ads support up to 10 cards.</li>
+</ul>
+
+<h3>Advantage+ Audience</h3>
+<h4>Require explicit advantage_audience for HEC-F campaigns with relaxable targeting</h4>
+
+<p><em>Applies to v26.0+ at launch. Becomes mandatory for all versions once v25.0 is deprecated; date TBD.</em></p>
+
+<p>When creating a Housing, Employment, or Financial Products and Services ad set with relaxable targeting options, <code>targeting_automation.advantage_audience</code> is optional on v25.0 and earlier. If omitted, the system silently applies the default behavior.</p>
+
+<p>Starting with v26.0, developers creating an HEC-F ad set with relaxable targeting in a non-broad setup must explicitly set <code>targeting_automation.advantage_audience</code> to <code>1</code> or <code>0</code>. Omitting the field returns <code>ADS_TARGETING__REQUIRE_EXPLICIT_ADVANTAGE_AUDIENCE_FLAG</code>. Broad or default audience setups are unaffected.</p>
+
+<p>Update constrained-targeting ad set creation requests to provide an explicit value.</p>
+
+<p>Affected endpoint:</p>
+
+<ul>
+<li><code>POST /&#123;ad-account-id&#125;/adsets</code></li>
+</ul>
+
+<h3>Instagram Explore Feed placement</h3>
+<h4>Explore ad placement no longer available</h4>
+
+<p><em>Applies to v26.0+.</em></p>
+
+<p>The Instagram Explore Feed placement is no longer available. Delivery shifts to other eligible placements, and requests that explicitly specify Explore return an error. Remove Explore from placement configurations.</p>
+
+<p>Affected endpoints:</p>
+
+<ul>
+<li><code>POST /act_&#123;ad-account-id&#125;/adsets</code></li>
+<li><code>POST /&#123;ad-set-id&#125;</code></li>
+</ul>
+
+<h3>Web+App campaign destination</h3>
+<h4>Web-only destination deprecation for Web+App campaigns</h4>
+
+<p><em>Applies to v26.0+. Applies to all Marketing API versions on October 27, 2026.</em></p>
+
+<p>A creative with <code>applink_treatment=web_only</code> can no longer be attached to an ad in a campaign using Website and App conversion locations. Use automatic destination selection or a compatible manual destination.</p>
+
+<p>Affected endpoints:</p>
+
+<ul>
+<li><code>POST /act_&#123;ad-account-id&#125;/ads</code></li>
+<li><code>POST /&#123;ad-id&#125;</code></li>
+</ul>
+
+<h3>Messenger placement</h3>
+<h4>Messenger Stories placement deprecated</h4>
+
+<p><em>Applies to v26.0+. Applies to all Marketing API versions, including unversioned calls, on October 27, 2026.</em></p>
+
+<p>The <code>story</code> value in <code>messenger_positions</code> is silently removed for versioned v26.0 or later calls and no longer appears in effective placements. Historical targeting data may continue to include it. Developers using manual placements should remove <code>story</code>; Advantage+ Placements require no action.</p>
+
+<p>Affected endpoints:</p>
+
+<ul>
+<li><code>POST /act_&#123;ad-account-id&#125;/adsets</code></li>
+<li><code>POST /&#123;ad-set-id&#125;</code></li>
+</ul>
+
+<h3>Poll ads</h3>
+<h4>Poll ad creation deprecated</h4>
+
+<p><em>Applies to v26.0+. Applies to all Marketing API versions on October 27, 2026.</em></p>
+
+<p>Poll components are no longer supported when creating or updating ads and creatives. The <code>poll_spec</code> field and <code>poll</code> type under <code>interactive_components_spec</code> are unavailable. Updates that do not change the creative can continue. Remove poll-related fields from creative specifications.</p>
+
+<p>Affected endpoints:</p>
+
+<ul>
+<li><code>POST /&#123;ad-account-id&#125;/adcreatives</code></li>
+<li><code>POST /&#123;ad-account-id&#125;/ads</code></li>
+<li><code>POST /&#123;ad-id&#125;</code></li>
+<li><code>GET /&#123;ad-account-id&#125;/generatepreviews</code></li>
+</ul>
+
+<h3>Shop Ads</h3>
+<h4>Creative Shops Ads Defaulting</h4>
+
+<p>Starting in API v26.0, eligible ad creatives will automatically default to destination_spec.destination_type = WEBSITE_AND_SHOP when the advertiser has a shop. Advertisers can opt out by explicitly setting destination_type to WEBSITE_AND_SHOP_OPT_OUT.</p>
+
+<p>Affected endpoints:</p>
+
+<ul>
+<li><code>POST &#123;ad-account-id&#125;/adcreatives</code></li>
+<li><code>POST /&#123;ad-account-id&#125;/ads</code></li>
+</ul>
+</div></div><div class="_4-u2 _57mb _1u44 _3fw6 _4-u8"><div class="_4-u3 _588p"><h2>Meta Business SDKs v26 Release</h2>
+
+<p>The Meta Business SDK v26 release will be published shortly after the release of Graph API v26. This release will include dependency upgrades, <a href="https://developers.facebook.com/documentation/ads-commerce/conversions-api/guides/business-sdk-features#conversions-api-parameter-builder-integration">Conversions API Parameter Builder integration</a>, new API features, and deprecation of the Commerce Order Management API and several legacy protocol features.</p>
+
+<p>The Business SDK is now integrated with open sourced <a href="https://l.facebook.com/l.php?u=https%3A%2F%2Fgithub.com%2Ffacebook%2Fcapi-param-builder%2Ftree%2Fmain&amp;h=AUCsvR-tHZbLw6rnXZkJ9oWyhlIpYFCSU4_7OD2hPJTYzht1qoUk0tyBDG_fENX1p4bm_1MUQj7UsYzfyo6Gw7sXAMz9f5tu5MgWFFh27ifG8ChCQKyrio6UsMH-TxRWWENgMq0ciSqVC-XvcEKeHyxKE0rdy6iW" target="_blank" rel="nofollow" data-lynx-mode="hover">Conversions API Parameter Builder</a>. You can leverage this new integration to improve the quality of your Conversions API integration. Key features: Auto-generates (gated by preference set by advertisers) and enhances parameters <em>fbc</em>, <em>fbp</em>, <em>event_source_url</em>, <em>referrer_url</em>, <em>client_ip_address</em> and automatic PII normalization/hashing for supported languages, see more <a href="https://developers.facebook.com/documentation/ads-commerce/conversions-api/guides/business-sdk-features#conversions-api-parameter-builder-integration">here</a>. The Commerce Order Management API (47 endpoints) is fully deprecated with no replacement. The Instagram Explore Feed ad placement is removed and returns errors if specified. Messenger Stories placement is silently removed from <em>messenger_positions</em>. Ads in WhatsApp Status gain new capabilities including identity spec, carousel up to 10 cards, and offsite-conversion optimization.</p>
+
+<p>As part of our <a href="https://developers.facebook.com/docs/graph-api/changelog">2-year deprecation</a> schedule for Platform SDKs, please note the upcoming deprecations and sunsets:</p>
+
+<ul>
+<li><strong>Sept, 2026:</strong> Facebook Platform SDK v20.0 will be deprecated</li>
+<li><strong>Jan, 2027:</strong>: Facebook Platform SDK v21.0 will be deprecated</li>
+</ul>
+</div></div><div class="_4-u2 _57mb _1u44 _3fw6 _4-u8"><div class="_4-u3 _588p"><h2>API Version Deprecations</h2>
+
+<ul>
+<li><strong>September 24, 2026:</strong> Graph API v20.0 is deprecated and removed.</li>
+<li><strong>January 21, 2027:</strong> Graph API v21.0 is deprecated and removed.</li>
+</ul>
+
+<p>To avoid disruption, migrate calls to the latest API version.</p>
+</div></div></div></span><div class="_4-u2 _57mb _1u44 _4-u8"><div class="_4-u3 _588p _4_k"><fb:like href="https://developers.facebook.com/docs/graph-api/changelog/version26.0/" layout="button_count" share="1"></fb:like></div></div>
+<div id="developer_documentation_toolbar">toolbar</div>
+<div id="devsite_footer">footer</div>
+<script>fbq("init", "0");</script>
+</body></html>

@@ -1,0 +1,54 @@
+name = "api-changelog-watcher"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+# No public URL. The cron and the queue don't need one. To smoke-test a deploy
+# by hand, set both to true, deploy, POST /run, then set them back and redeploy.
+workers_dev = false
+preview_urls = false
+
+[observability]
+enabled = true
+
+# Status pages hourly; changelogs every 6 hours (at :15 so the two don't collide).
+# Free plan: 5 cron triggers per account. This Worker uses 2.
+[triggers]
+crons = ["0 * * * *", "15 */6 * * *"]
+
+# One KV key per source holds the last snapshot.
+# No id here: `wrangler deploy` provisions the namespace and writes the id back.
+[[kv_namespaces]]
+binding = "WATCH_KV"
+
+# Workers AI always runs remotely, even under `wrangler dev` (real, free neurons).
+[ai]
+binding = "AI"
+remote = true
+
+# Fan-out: one message per source, one source per invocation (10 ms CPU each).
+[[queues.producers]]
+binding = "JOBS"
+queue = "watch-jobs"
+
+[[queues.consumers]]
+queue = "watch-jobs"
+max_batch_size = 1
+max_batch_timeout = 1
+max_retries = 3
+dead_letter_queue = "watch-jobs-dlq"
+
+[[queues.consumers]]
+queue = "watch-jobs-dlq"
+max_batch_size = 10
+max_batch_timeout = 5
+
+[vars]
+USER_AGENT = "api-changelog-watcher/0.1 (+https://www.abikmaharjan.com.np/watch)"
+# Max Workers AI summaries per source run; changes past this keep a raw excerpt only.
+MAX_AI_CALLS_PER_RUN = "12"
+# Debug routes (/debug/*) answer only when this is "true". Off in production.
+ENABLE_DEBUG = "false"
+
+# Secrets (set with `wrangler secret put`, or in .dev.vars locally):
+#   SUPABASE_URL        https://<project-ref>.supabase.co
+#   SUPABASE_WATCH_KEY  a dedicated sb_secret_… key for this Worker
+#   RUN_TOKEN           bearer token for POST /run
