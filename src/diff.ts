@@ -1,6 +1,7 @@
 // F6/F7/F8: entry-level diff, baseline and the parser-broken guard.
 // Compares {key: hash} maps, so it is O(entries) and never diffs text.
 
+import { sha256 } from "./hash";
 import type { Change, Entry, Snapshot, SourceKind } from "./types";
 
 export interface DiffResult {
@@ -14,11 +15,30 @@ export function isEmpty(d: DiffResult): boolean {
 }
 
 /**
+ * Identifies one transition of one entry, not just its new state, so a status
+ * that flips back to a value it had before (or a revert, or a second removal)
+ * is a new row instead of colliding with the earlier one on the unique
+ * (source, entry_key, content_hash) constraint. The previous snapshot pins it
+ * to this run: a retry diffs against the same snapshot (it is only replaced
+ * after the store succeeds), so it gets the same hash and is still deduped.
+ */
+export async function transitionHash(
+  prev: Snapshot,
+  key: string,
+  diffType: Change["diffType"],
+  oldHash: string | undefined,
+  newHash: string | undefined,
+): Promise<string> {
+  const parts = [prev.savedAt, prev.bodyHash, key, diffType, oldHash ?? "none", newHash ?? "none"];
+  return (await sha256(parts.join("\n"))).slice(0, 32);
+}
+
+/**
  * @param versionChanged the page now describes a different version (Meta
  *   v26 → v27), so the old page's entries disappearing is expected and is not
  *   reported as "removed".
  */
-export function diffEntries(prev: Snapshot, entries: Entry[], versionChanged: boolean): DiffResult {
+export async function diffEntries(prev: Snapshot, entries: Entry[], versionChanged: boolean): Promise<DiffResult> {
   const result: DiffResult = { added: [], modified: [], removed: [] };
   const seen = new Set<string>();
 
@@ -26,7 +46,14 @@ export function diffEntries(prev: Snapshot, entries: Entry[], versionChanged: bo
     seen.add(e.key);
     const old = prev.entries[e.key];
     if (!old) {
-      result.added.push({ key: e.key, title: e.title, url: e.url, diffType: "added", newText: e.text, contentHash: e.hash });
+      result.added.push({
+        key: e.key,
+        title: e.title,
+        url: e.url,
+        diffType: "added",
+        newText: e.text,
+        contentHash: await transitionHash(prev, e.key, "added", undefined, e.hash),
+      });
     } else if (old.hash !== e.hash) {
       result.modified.push({
         key: e.key,
@@ -35,7 +62,7 @@ export function diffEntries(prev: Snapshot, entries: Entry[], versionChanged: bo
         diffType: "modified",
         newText: e.text,
         oldText: old.text,
-        contentHash: e.hash,
+        contentHash: await transitionHash(prev, e.key, "modified", old.hash, e.hash),
       });
     }
   }
@@ -49,7 +76,7 @@ export function diffEntries(prev: Snapshot, entries: Entry[], versionChanged: bo
         url: old.url,
         diffType: "removed",
         oldText: old.text,
-        contentHash: `removed:${old.hash}`,
+        contentHash: await transitionHash(prev, key, "removed", old.hash, undefined),
       });
     }
   }

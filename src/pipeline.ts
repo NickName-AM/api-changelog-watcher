@@ -109,7 +109,7 @@ export async function runSource(env: Env, src: SourceDef, opts: RunOptions = {})
           // feed doesn't open with years of history.
           result.outcome = "baseline";
         } else {
-          const d = diffEntries(prev, parsed.entries, versionChanged);
+          const d = await diffEntries(prev, parsed.entries, versionChanged);
           if (!isEmpty(d)) {
             result.outcome = "changed";
             result.changes = await summarizeAll(env, src, [...d.added, ...d.modified, ...d.removed], opts.ai !== false);

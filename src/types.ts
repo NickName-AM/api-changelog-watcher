@@ -77,7 +77,7 @@ export interface Change {
   diffType: "added" | "modified" | "removed";
   newText?: string;
   oldText?: string;
-  /** Identifies this exact change; retries and re-runs dedupe on it. */
+  /** Identifies this exact transition (see transitionHash); retries dedupe on it. */
   contentHash: string;
 }
 
