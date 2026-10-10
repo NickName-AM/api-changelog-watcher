@@ -16,7 +16,8 @@ export interface Parsed {
   /**
    * What the page is "about": the API version for a version changelog, the
    * year page for Meta's out-of-cycle notes. When it changes between runs, the
-   * old page's entries are not reported as removed.
+   * entries are diffed as a new page: all added, none removed (unless the
+   * source sets `rollingVersion`).
    */
   version?: string;
 }
@@ -41,6 +42,11 @@ export interface SourceDef {
    * (scripts, nonces, tracking tokens) lets an unchanged page short-circuit.
    */
   extract?: (body: string) => string;
+  /**
+   * `version` is only the newest item on a page that keeps its history (LinkedIn's
+   * monthly list), so it is shown but a new one is not diffed as a new page.
+   */
+  rollingVersion?: boolean;
   parse: (body: string, pageUrl: string) => Promise<Parsed>;
 }
 

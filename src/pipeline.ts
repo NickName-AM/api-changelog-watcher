@@ -89,7 +89,7 @@ export async function runSource(env: Env, src: SourceDef, opts: RunOptions = {})
       } else {
         const parsed = await src.parse(body, fetched.pageUrl);
         const version = parsed.version;
-        const versionChanged = Boolean(prev?.version && version && prev.version !== version);
+        const versionChanged = !src.rollingVersion && Boolean(prev?.version && version && prev.version !== version);
         result.version = version;
         result.entryCount = parsed.entries.length;
 

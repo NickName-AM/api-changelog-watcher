@@ -35,8 +35,9 @@ export async function transitionHash(
 
 /**
  * @param versionChanged the page now describes a different version (Meta
- *   v26 → v27), so the old page's entries disappearing is expected and is not
- *   reported as "removed".
+ *   v26 → v27). Every entry is reported as added, because matching v27's
+ *   sections to v26's by key would describe the gap between the two versions,
+ *   and the old page's entries disappearing is not reported as "removed".
  */
 export async function diffEntries(prev: Snapshot, entries: Entry[], versionChanged: boolean): Promise<DiffResult> {
   const result: DiffResult = { added: [], modified: [], removed: [] };
@@ -44,7 +45,7 @@ export async function diffEntries(prev: Snapshot, entries: Entry[], versionChang
 
   for (const e of entries) {
     seen.add(e.key);
-    const old = prev.entries[e.key];
+    const old = versionChanged ? undefined : prev.entries[e.key];
     if (!old) {
       result.added.push({
         key: e.key,

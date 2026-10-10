@@ -50,6 +50,16 @@ describe("diffEntries", () => {
     expect(d.removed).toHaveLength(0);
   });
 
+  it("reports a section on both versions as added, not modified, after a version bump", async () => {
+    const prev = await snap([await entry("deprecations", "v26 text"), await entry("old-1", "x")], "v26.0");
+    const next = [await entry("deprecations", "v27 text"), await entry("new-1", "z")];
+    const d = await diffEntries(prev, next, true);
+    expect(d.added.map((c) => c.key)).toEqual(["deprecations", "new-1"]);
+    expect(d.added[0]!.oldText).toBeUndefined();
+    expect(d.modified).toHaveLength(0);
+    expect(d.removed).toHaveLength(0);
+  });
+
   it("gives a status that flips 4 times 4 distinct hashes", async () => {
     const hashes = await transitions(["ok", "down", "ok", "down", "ok"]);
     expect(hashes).toHaveLength(4);

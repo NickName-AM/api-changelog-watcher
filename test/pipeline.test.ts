@@ -8,6 +8,7 @@ import { getSource } from "../src/sources";
 import type { Snapshot } from "../src/types";
 import tiktok from "./fixtures/tiktok-dev.html?raw";
 import metaStatus from "./fixtures/meta-status.json?raw";
+import linkedinRecent from "./fixtures/linkedin-recent.md?raw";
 
 const OFFLINE = { ai: false, store: false } as const;
 const src = getSource("tiktok-dev")!;
@@ -56,5 +57,18 @@ describe("runSource", () => {
     expect(run.changes).toHaveLength(1);
     expect(run.changes[0]).toMatchObject({ change_type: "status", category: "incident" });
     expect(run.changes[0]!.summary).toMatch(/to "Major disruption"/);
+  });
+
+  it("diffs a new LinkedIn month as one added section, not a new page", async () => {
+    const linkedin = getSource("linkedin-recent")!;
+    const first = await runSource(env, linkedin, { ...OFFLINE, body: linkedinRecent });
+    expect(first.outcome).toBe("baseline");
+    const next = linkedinRecent
+      .replace(/\s*\(Latest\)/i, "")
+      .replace("## September 2026", "## December 2099 - Version 209912 (Latest)\n\nA new month.\n\n## September 2026");
+    const run = await runSource(env, linkedin, { ...OFFLINE, body: next });
+    expect(run.version).toBe("209912");
+    expect(run.changes).toHaveLength(1);
+    expect(run.changes[0]).toMatchObject({ entry_key: "version-209912", change_type: "added" });
   });
 });

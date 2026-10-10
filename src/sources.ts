@@ -64,6 +64,7 @@ export const SOURCES: SourceDef[] = [
     name: "LinkedIn Marketing API: recent changes",
     url: "https://learn.microsoft.com/en-us/linkedin/marketing/integrations/recent-changes",
     accept: "text/markdown",
+    rollingVersion: true,
     parse: parseLinkedInRecentChanges,
   },
   {
