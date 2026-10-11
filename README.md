@@ -87,6 +87,7 @@ src/
   store.ts        Supabase RPC call (plain fetch, no SDK)
   hash.ts         SHA-256 via crypto.subtle
   text.ts         entity decoding, whitespace tidy, slugs, ISO dates
+  log.ts          structured log events for Workers Logs
   types.ts        shared types
   env.d.ts        secret types (wrangler types can't see secrets)
   parsers/        html (HTMLRewriter splitter), meta, tiktok, markdown, status
@@ -208,6 +209,29 @@ run `npx wrangler tail`, wait for the top of the hour (status sources) or
 To trigger a run by hand instead, set `workers_dev = true` temporarily, deploy,
 `curl -X POST -H "Authorization: Bearer $RUN_TOKEN" "https://api-changelog-watcher.<subdomain>.workers.dev/run?source=meta-graph-latest"`,
 then set it back to `false` and deploy again.
+
+## Logs
+
+Each log line is an object with a one-line `message` for people to read
+(`tiktok-dev changed: 3 changes (2 added, 1 modified)`) and a fixed `event`
+name plus fields for queries in Workers Logs (dashboard → Observability). The level
+matches the problem: `error` for a failed run, `warn` for a retry or an AI
+fallback.
+
+| Event | When | Main fields |
+|---|---|---|
+| `run.done` | Every run, one line | `source`, `reason`, `attempt`, `outcome`, `stage`, `version`, `entries`, `changes`, `added`/`modified`/`removed`, `ai_ok`/`ai_failed`/`ai_skipped`, `inserted`, `snapshot_written`, `duration_ms`, `error` |
+| `run.store_failed` | The Supabase write failed (the run will retry) | same as `run.done`, with `error` for the store failure and `run_error` for the run's own error |
+| `run.enqueued`, `cron.enqueued` | `POST /run?source=all`, or a cron fired | `sources`, `cron`, `schedule` |
+| `queue.retry` | A queued run threw | `source`, `attempt`, `delay_seconds`, `error` |
+| `queue.dead_letter` | Retries used up | `source`, `attempts` |
+| `ai.unusable`, `ai.failed` | One model gave junk or threw (the next model is tried) | `model`, `source`, `key`, `error` |
+| `cron.unknown`, `queue.unknown_source`, `queue.dead_letter_store_failed` | Should not happen | |
+
+`stage` says where the run stopped: `not_modified` (304) and `same_body` are
+the cheap exits, `done` means it parsed and diffed. On an error it names the
+step that failed (`fetch`, `parse`, `guard`, …). Useful queries:
+`event = "run.done" AND outcome = "error"`, and `source = "<id>"`.
 
 ## Free-plan budget
 

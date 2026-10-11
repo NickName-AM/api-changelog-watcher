@@ -1,6 +1,7 @@
 // F9/F10: Workers AI turns one changed entry into a short plain-English summary
 // plus a category, the API versions it touches, and an effective date.
 
+import { brief, errorFields, log } from "./log";
 import { truncate } from "./text";
 import { CATEGORIES, type Category, type Change, type SourceDef, type Summary } from "./types";
 
@@ -117,9 +118,20 @@ export async function summarizeWithAi(ai: Ai, src: SourceDef, change: Change): P
     try {
       const s = await callModel(ai, model, prompt);
       if (s) return s;
-      console.warn(JSON.stringify({ msg: "ai output unusable", model, source: src.id, key: change.key }));
+      log.warn("ai.unusable", `${src.id} "${change.key}": ${model} returned no usable summary`, {
+        model,
+        source: src.id,
+        key: change.key,
+        diff_type: change.diffType,
+      });
     } catch (err) {
-      console.warn(JSON.stringify({ msg: "ai call failed", model, source: src.id, key: change.key, error: String(err) }));
+      log.warn("ai.failed", `${src.id} "${change.key}": ${model} call failed: ${brief(err)}`, {
+        model,
+        source: src.id,
+        key: change.key,
+        diff_type: change.diffType,
+        ...errorFields(err),
+      });
     }
   }
   return fallbackSummary();

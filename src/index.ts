@@ -1,4 +1,5 @@
 import { fetchSource } from "./fetch";
+import { brief, errorFields, log } from "./log";
 import { runSource, snapshotKey } from "./pipeline";
 import { CRONS, getSource, SOURCES, sourcesFor } from "./sources";
 import { recordRun, storeConfig } from "./store";
@@ -53,6 +54,10 @@ async function handleFetch(req: Request, env: Env): Promise<Response> {
     const id = url.searchParams.get("source") ?? "all";
     if (id === "all") {
       await enqueue(env, SOURCES, "manual");
+      log.info("run.enqueued", `Manual run: queued ${SOURCES.length} sources`, {
+        reason: "manual",
+        sources: SOURCES.map((s) => s.id),
+      });
       return json({ enqueued: SOURCES.map((s) => s.id) }, 202);
     }
     const src = getSource(id);
@@ -87,6 +92,7 @@ async function handleFetch(req: Request, env: Env): Promise<Response> {
           body: injected,
           ai: url.searchParams.get("ai") !== "0",
           store: url.searchParams.get("store") !== "0",
+          reason: "debug",
         }),
       );
     }
@@ -112,12 +118,16 @@ export default {
   async scheduled(controller, env): Promise<void> {
     const schedule = CRONS[controller.cron];
     if (!schedule) {
-      console.warn(JSON.stringify({ msg: "unknown cron", cron: controller.cron }));
+      log.warn("cron.unknown", `Cron "${controller.cron}" is not in CRONS; nothing queued`, { cron: controller.cron });
       return;
     }
     const sources = sourcesFor(schedule);
-    console.log(JSON.stringify({ msg: "cron", cron: controller.cron, schedule, sources: sources.map((s) => s.id) }));
     await enqueue(env, sources, "cron");
+    log.info("cron.enqueued", `Cron ${schedule}: queued ${sources.map((s) => s.id).join(", ") || "nothing"}`, {
+      cron: controller.cron,
+      schedule,
+      sources: sources.map((s) => s.id),
+    });
   },
 
   // F3: max_batch_size = 1, so each source gets its own invocation and CPU budget.
@@ -125,7 +135,11 @@ export default {
     for (const msg of batch.messages) {
       const src = getSource(msg.body?.sourceId);
       if (!src) {
-        console.warn(JSON.stringify({ msg: "unknown source in message", body: msg.body }));
+        log.warn("queue.unknown_source", `Dropped a message for unknown source "${String(msg.body?.sourceId)}"`, {
+          queue: batch.queue,
+          message_id: msg.id,
+          body: msg.body,
+        });
         msg.ack();
         continue;
       }
@@ -133,7 +147,12 @@ export default {
       if (batch.queue === DLQ) {
         // Retries are used up; most likely Supabase was unreachable. Try once
         // more to leave a trace in watch_runs, then drop the message.
-        console.error(JSON.stringify({ msg: "dead letter", source: src.id, attempts: msg.attempts }));
+        log.error("queue.dead_letter", `${src.id} gave up after ${msg.attempts} attempts`, {
+          source: src.id,
+          reason: msg.body.reason,
+          message_id: msg.id,
+          attempts: msg.attempts,
+        });
         const cfg = storeConfig(env);
         if (cfg) {
           const now = new Date().toISOString();
@@ -145,19 +164,32 @@ export default {
             changes: [],
             error: "gave up after queue retries (see Workers logs)",
             stored: false,
-          }).catch((err) => console.error(JSON.stringify({ msg: "dead letter store failed", error: String(err) })));
+          }).catch((err) =>
+            log.error("queue.dead_letter_store_failed", `${src.id}: could not record the give-up in Supabase: ${brief(err)}`, {
+              source: src.id,
+              ...errorFields(err),
+            }),
+          );
         }
         msg.ack();
         continue;
       }
 
       try {
-        await runSource(env, src);
+        await runSource(env, src, { reason: msg.body.reason, attempt: msg.attempts });
         msg.ack();
       } catch (err) {
-        // runSource only throws when the Supabase write fails.
-        console.error(JSON.stringify({ msg: "run failed, will retry", source: src.id, error: String(err) }));
-        msg.retry({ delaySeconds: 60 * msg.attempts });
+        // runSource only throws when the Supabase write (or the KV put) fails.
+        const delaySeconds = 60 * msg.attempts;
+        log.warn("queue.retry", `${src.id} attempt ${msg.attempts} failed, retrying in ${delaySeconds}s: ${brief(err)}`, {
+          source: src.id,
+          reason: msg.body.reason,
+          message_id: msg.id,
+          attempt: msg.attempts,
+          delay_seconds: delaySeconds,
+          ...errorFields(err),
+        });
+        msg.retry({ delaySeconds });
       }
     }
   },
