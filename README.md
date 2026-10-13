@@ -54,10 +54,16 @@ JavaScript (the HTML has no content). TikTok has no official status page.
 4. **Guard.** 0 entries, or a changelog dropping below half its previous count,
    is treated as a broken parser. The run records an error and keeps the old
    snapshot.
-5. **Baseline.** The first run stores a snapshot and reports nothing.
+5. **Baseline.** The first run stores a snapshot. A changelog reports every
+   entry already on the page with change type `preexisting`, so notices
+   published before the watcher started (a deprecation that takes effect next
+   month, say) still reach `/watch`, labelled as not newly seen. Entries that
+   mention a deprecation, sunset or breaking change go first, so they get the
+   AI summaries if the budget runs out. A status source reports nothing on its
+   first run: its current state is mostly "operational" rows.
 6. **Diff** `{key: hash}` maps into added / modified / removed. When the version
    changes (Meta v26 → v27), the old page's entries are not reported as removed.
-7. **Summarise.** Added and modified changelog entries go to
+7. **Summarise.** Added, modified and preexisting changelog entries go to
    `@cf/zai-org/glm-4.7-flash` (thinking off), falling back to
    `@cf/google/gemma-4-26b-a4b-it`. The model returns JSON with a summary,
    category (`breaking`, `deprecation`, `new`, `fix`, `docs`), versions and
@@ -100,7 +106,9 @@ test/             vitest in workerd, against the fixtures in test/fixtures/
 The schema is not part of this repo. It creates:
 
 - `watch_sources`: one row per source with its latest version and health. Public read.
-- `watch_changes`: the detected changes. Public read.
+- `watch_changes`: the detected changes. Public read. `change_type` is
+  `added`, `modified`, `removed`, `status`, or `preexisting` (on the page
+  before the watcher's first run; needs `supabase/0010_watch_preexisting.sql`).
 - `watch_runs`: one row per run, for debugging. No policies, so not public.
   Pruned to 30 days by `record_watch_result()`.
 
@@ -220,7 +228,7 @@ fallback.
 
 | Event | When | Main fields |
 |---|---|---|
-| `run.done` | Every run, one line | `source`, `reason`, `attempt`, `outcome`, `stage`, `version`, `entries`, `changes`, `added`/`modified`/`removed`, `ai_ok`/`ai_failed`/`ai_skipped`, `inserted`, `snapshot_written`, `duration_ms`, `error` |
+| `run.done` | Every run, one line | `source`, `reason`, `attempt`, `outcome`, `stage`, `version`, `entries`, `changes`, `added`/`modified`/`removed`, `preexisting` (baseline), `ai_ok`/`ai_failed`/`ai_skipped`, `inserted`, `snapshot_written`, `duration_ms`, `error` |
 | `run.store_failed` | The Supabase write failed (the run will retry) | same as `run.done`, with `error` for the store failure and `run_error` for the run's own error |
 | `run.enqueued`, `cron.enqueued` | `POST /run?source=all`, or a cron fired | `sources`, `cron`, `schedule` |
 | `queue.retry` | A queued run threw | `source`, `attempt`, `delay_seconds`, `error` |

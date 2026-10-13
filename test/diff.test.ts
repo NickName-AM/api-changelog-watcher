@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diffEntries, guard, isEmpty, toSnapshot } from "../src/diff";
+import { baselineChanges, diffEntries, guard, isEmpty, toSnapshot } from "../src/diff";
 import { entryHash } from "../src/hash";
 import type { Entry } from "../src/types";
 
@@ -93,6 +93,30 @@ describe("diffEntries", () => {
     const first = await hashes();
     expect(first).toHaveLength(3);
     expect(await hashes()).toEqual(first);
+  });
+});
+
+describe("baselineChanges", () => {
+  it("reports every entry as preexisting, deprecations first, page order otherwise", async () => {
+    const entries = [
+      await entry("a", "New endpoint"),
+      await entry("b", "Legacy protocol features are deprecated, effective October 27, 2026"),
+      await entry("c", "Docs fix"),
+      await entry("d", "This field will be removed in v27.0"),
+    ];
+    const changes = await baselineChanges(entries);
+    expect(changes.map((c) => c.key)).toEqual(["b", "d", "a", "c"]);
+    expect(changes.every((c) => c.diffType === "preexisting" && c.oldText === undefined)).toBe(true);
+    expect(changes[0]!.newText).toContain("deprecated");
+  });
+
+  it("hashes from the entry alone, so a retry or re-baseline dedupes and an edit does not", async () => {
+    const [first] = await baselineChanges([await entry("a", "1")]);
+    const [again] = await baselineChanges([await entry("a", "1")]);
+    const [edited] = await baselineChanges([await entry("a", "1 edited")]);
+    expect(first!.contentHash).toMatch(/^[0-9a-f]{32}$/);
+    expect(again!.contentHash).toBe(first!.contentHash);
+    expect(edited!.contentHash).not.toBe(first!.contentHash);
   });
 });
 

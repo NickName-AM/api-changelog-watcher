@@ -42,6 +42,12 @@ describe("prompts and deterministic summaries", () => {
     expect(p).toContain("<new>\nnew body\n</new>");
   });
 
+  it("says a preexisting entry was already there, with no <old> block", () => {
+    const p = buildPrompt(getSource("meta-graph-latest")!, { ...change, diffType: "preexisting", oldText: undefined });
+    expect(p).toContain("already on the page when watching began");
+    expect(p).not.toContain("<old>");
+  });
+
   it("describes a status flip without a model", () => {
     const s = deterministicSummary(getSource("meta-status")!, {
       ...change,

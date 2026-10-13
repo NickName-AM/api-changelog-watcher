@@ -69,7 +69,11 @@ export interface Snapshot {
   entries: Record<string, SnapshotEntry>;
 }
 
-export type ChangeType = "added" | "modified" | "removed" | "status";
+/**
+ * "preexisting": the entry was already on the page when the source was first
+ * watched (its baseline run), so it is not a change the watcher saw happen.
+ */
+export type ChangeType = "added" | "modified" | "removed" | "preexisting" | "status";
 
 export const CATEGORIES = ["breaking", "deprecation", "new", "fix", "docs", "incident"] as const;
 export type Category = (typeof CATEGORIES)[number];
@@ -79,8 +83,11 @@ export interface Change {
   key: string;
   title: string;
   url?: string;
-  /** added / modified / removed, as seen by the diff. Status sources rewrite this to "status". */
-  diffType: "added" | "modified" | "removed";
+  /**
+   * added / modified / removed, as seen by the diff, or preexisting on a
+   * baseline run. Status sources rewrite this to "status".
+   */
+  diffType: "added" | "modified" | "removed" | "preexisting";
   newText?: string;
   oldText?: string;
   /** Identifies this exact transition (see transitionHash); retries dedupe on it. */

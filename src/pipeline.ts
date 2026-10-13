@@ -2,7 +2,7 @@
 // summarise → store → snapshot. Each queue message runs this once, so each
 // source gets its own 10 ms CPU budget. Waiting on fetch, KV and AI is free.
 
-import { diffEntries, guard, isEmpty, toSnapshot } from "./diff";
+import { baselineChanges, diffEntries, guard, isEmpty, toSnapshot } from "./diff";
 import { fetchSource, type Fetched } from "./fetch";
 import { sha256 } from "./hash";
 import { brief, errorFields, log } from "./log";
@@ -101,8 +101,13 @@ function runMessage(
   switch (result.outcome) {
     case "error":
       return `${id} failed at ${stage}: ${brief(result.error)}`;
-    case "baseline":
-      return `${id} baseline: saved ${plural(result.entryCount ?? 0, "entry", "entries")}, nothing reported`;
+    case "baseline": {
+      let msg = `${id} baseline: saved ${plural(result.entryCount ?? 0, "entry", "entries")}, `;
+      msg += result.changes.length > 0 ? `${result.changes.length} reported as preexisting` : "nothing reported";
+      if (ai.failed > 0) msg += `, ${plural(ai.failed, "AI summary", "AI summaries")} failed`;
+      if (ai.skipped > 0) msg += `, ${ai.skipped} without AI`;
+      return msg;
+    }
     case "unchanged":
       if (stage === "not_modified") return `${id} unchanged (304 Not Modified)`;
       if (stage === "same_body") return `${id} unchanged (same page body)`;
@@ -173,9 +178,15 @@ export async function runSource(env: Env, src: SourceDef, opts: RunOptions = {})
         });
 
         if (!prev) {
-          // F7: first ever run stores the snapshot and reports nothing, so the
-          // feed doesn't open with years of history.
+          // F7: first ever run. A changelog reports what is already on the page
+          // as "preexisting"; a status source reports nothing, since its
+          // current state is mostly "operational" rows that changed nothing.
           result.outcome = "baseline";
+          if (src.kind === "changelog") {
+            stage = "summarize";
+            const changes = await baselineChanges(parsed.entries);
+            result.changes = await summarizeAll(env, src, changes, opts.ai !== false, ai);
+          }
         } else {
           stage = "diff";
           const d = await diffEntries(prev, parsed.entries, versionChanged);
@@ -215,6 +226,7 @@ export async function runSource(env: Env, src: SourceDef, opts: RunOptions = {})
     entries: result.entryCount,
     changes: result.changes.length,
     ...diffCounts,
+    ...(result.outcome === "baseline" ? { preexisting: result.changes.length } : {}),
     ...(result.changes.length > 0 ? { ai_ok: ai.ok, ai_failed: ai.failed, ai_skipped: ai.skipped } : {}),
     duration_ms: result.durationMs,
     error: result.error,

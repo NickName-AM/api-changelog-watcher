@@ -84,6 +84,36 @@ export async function diffEntries(prev: Snapshot, entries: Entry[], versionChang
   return result;
 }
 
+/** Wording that means "something will stop working", checked on baseline entries. */
+const NOTICE_RE = /deprecat|sunset|breaking|end[- ]of[- ]life|will be (?:removed|retired|disabled)|no longer (?:be )?(?:supported|available)/i;
+
+/**
+ * F7. The first run of a changelog reports every entry already on the page as
+ * "preexisting", so notices published before the watcher started (Meta v26.0's
+ * deprecations, say) still reach the feed, labelled as not newly seen.
+ *
+ * Entries that read like a deprecation or breaking change come first, page
+ * order otherwise, so they get the AI summaries when MAX_AI_CALLS_PER_RUN runs
+ * out. There is no previous snapshot to pin the hash to, so it is derived from
+ * the entry alone: a retry, or a re-baseline after a reset, of the same entry
+ * dedupes instead of adding a second row.
+ */
+export async function baselineChanges(entries: Entry[]): Promise<Change[]> {
+  const changes: Change[] = [];
+  for (const e of entries) {
+    changes.push({
+      key: e.key,
+      title: e.title,
+      url: e.url,
+      diffType: "preexisting",
+      newText: e.text,
+      contentHash: (await sha256(["preexisting", e.key, e.hash].join("\n"))).slice(0, 32),
+    });
+  }
+  const notice = (c: Change) => NOTICE_RE.test(`${c.title}\n${c.newText}`);
+  return [...changes.filter(notice), ...changes.filter((c) => !notice(c))];
+}
+
 /**
  * F8. A page that suddenly parses to nothing, or to less than half of last
  * time, almost always means the markup changed under the parser, not that the

@@ -37,7 +37,9 @@ export function buildPrompt(src: SourceDef, change: Change): string {
     `Platform: ${src.platform}`,
     `Source: ${src.name}`,
     `Entry: ${change.title}`,
-    `Change: this entry was ${change.diffType}.`,
+    change.diffType === "preexisting"
+      ? "Change: this entry was already on the page when watching began."
+      : `Change: this entry was ${change.diffType}.`,
   ];
   if (change.diffType === "modified" && change.oldText) {
     parts.push(`<old>\n${truncate(change.oldText, MAX_PROMPT_TEXT)}\n</old>`);
