@@ -47,8 +47,13 @@ USER_AGENT = "api-changelog-watcher/0.1 (+https://www.abikmaharjan.com.np/watch)
 MAX_AI_CALLS_PER_RUN = "12"
 # Debug routes (/debug/*) answer only when this is "true". Off in production.
 ENABLE_DEBUG = "false"
+# Pinged after a run inserts changes, so the portfolio's cached /watch pages
+# republish (src/revalidate.ts). Keep the trailing slash: the site 308s
+# without one. Does nothing until WATCH_REVALIDATE_SECRET is set too.
+PORTFOLIO_REVALIDATE_URL = "https://www.abikmaharjan.com.np/api/watch/revalidate/"
 
 # Secrets (set with `wrangler secret put`, or in .dev.vars locally):
 #   SUPABASE_URL        https://<project-ref>.supabase.co
 #   SUPABASE_WATCH_KEY  a dedicated sb_secret_… key for this Worker
 #   RUN_TOKEN           bearer token for POST /run
+#   WATCH_REVALIDATE_SECRET  same value as the portfolio's; enables the /watch ping

@@ -4,3 +4,6 @@ SUPABASE_URL=
 SUPABASE_WATCH_KEY=
 RUN_TOKEN=change-me
 ENABLE_DEBUG=true
+# Leave empty locally, or every run that finds something republishes the live
+# portfolio (PORTFOLIO_REVALIDATE_URL in wrangler.toml points at production).
+WATCH_REVALIDATE_SECRET=

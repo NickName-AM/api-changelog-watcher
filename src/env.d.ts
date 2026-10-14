@@ -5,6 +5,8 @@ interface WatchSecrets {
   SUPABASE_URL?: string;
   SUPABASE_WATCH_KEY?: string;
   RUN_TOKEN?: string;
+  /** Shared with the portfolio; see src/revalidate.ts. */
+  WATCH_REVALIDATE_SECRET?: string;
 }
 
 interface Env extends WatchSecrets {}

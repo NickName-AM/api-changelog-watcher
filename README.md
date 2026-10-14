@@ -127,6 +127,7 @@ third-party pages or produced by a model: render them as text, never as HTML.
 | `USER_AGENT` | `api-changelog-watcher/0.1 (+…/watch)` | Sent with every fetch |
 | `MAX_AI_CALLS_PER_RUN` | `12` | AI summaries per source run |
 | `ENABLE_DEBUG` | `false` | Enables `/debug/*` |
+| `PORTFOLIO_REVALIDATE_URL` | `https://www.abikmaharjan.com.np/api/watch/revalidate/` | POSTed after a run inserts changes, so the portfolio's cached `/watch` republishes. Keep the trailing slash |
 
 Secrets (`wrangler secret put`, or `.dev.vars` locally):
 
@@ -135,6 +136,7 @@ Secrets (`wrangler secret put`, or `.dev.vars` locally):
 | `SUPABASE_URL` | `https://<project-ref>.supabase.co` |
 | `SUPABASE_WATCH_KEY` | The Worker's dedicated `sb_secret_…` key |
 | `RUN_TOKEN` | Bearer token for `/run` and `/debug/*`. If unset, both refuse every request. |
+| `WATCH_REVALIDATE_SECRET` | Same value as the portfolio's. Unset, no ping is sent and `/watch` catches up on its hourly timer. A failed ping is logged (`revalidate.failed`) and never retries the run. |
 
 Without both Supabase secrets the Worker still runs, but results are only logged.
 
@@ -206,6 +208,7 @@ npx wrangler queues create watch-jobs-dlq
 npx wrangler secret put SUPABASE_URL
 npx wrangler secret put SUPABASE_WATCH_KEY
 npx wrangler secret put RUN_TOKEN
+npx wrangler secret put WATCH_REVALIDATE_SECRET
 npm run deploy                        # also provisions the WATCH_KV namespace
 ```
 

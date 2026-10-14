@@ -6,6 +6,7 @@ import { baselineChanges, diffEntries, guard, isEmpty, toSnapshot } from "./diff
 import { fetchSource, type Fetched } from "./fetch";
 import { sha256 } from "./hash";
 import { brief, errorFields, log } from "./log";
+import { revalidatePortfolio } from "./revalidate";
 import { recordRun, storeConfig } from "./store";
 import { deterministicSummary, fallbackSummary, summarizeWithAi } from "./summarize";
 import { truncate } from "./text";
@@ -249,6 +250,13 @@ export async function runSource(env: Env, src: SourceDef, opts: RunOptions = {})
     result.stored = true;
   }
   if (nextSnapshot) await env.WATCH_KV.put(snapshotKey(src.id), JSON.stringify(nextSnapshot));
+
+  // Only when rows were actually new: a queue retry of a run that already
+  // stored finds its rows deduped (inserted 0) and stays quiet. Source status
+  // (last_checked_at, last_ok_at) changes every run and is left to the
+  // portfolio's hourly fallback -- its stale badge is a 24 h threshold, so a
+  // ping on each ok/error flip would not show anything sooner.
+  if (inserted) await revalidatePortfolio(env, src.id, inserted);
 
   const done = {
     ...fields,
