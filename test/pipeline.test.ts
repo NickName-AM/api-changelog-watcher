@@ -1,8 +1,9 @@
 // Step 4 tests, against the Worker's real (local, per-test) KV.
 // Supabase is switched off, and so is AI except for a stub in the budget test.
+// The portfolio-ping tests turn the store on against a stubbed fetch.
 
 import { env } from "cloudflare:workers";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { runSource, snapshotKey } from "../src/pipeline";
 import { getSource } from "../src/sources";
 import type { Snapshot } from "../src/types";
@@ -103,5 +104,40 @@ describe("runSource", () => {
     // The next run diffs against the baseline as usual.
     const again = await runSource(env, meta, { ...OFFLINE, body: metaLatest });
     expect(again.outcome).toBe("unchanged");
+  });
+});
+
+describe("portfolio ping", () => {
+  const PING = "https://portfolio.test/api/watch/revalidate/";
+  const wired = {
+    ...env,
+    SUPABASE_URL: "https://db.test",
+    SUPABASE_WATCH_KEY: "sb_secret_test",
+    PORTFOLIO_REVALIDATE_URL: PING,
+    WATCH_REVALIDATE_SECRET: "s3cret",
+  };
+  const pinged = (fetch: { mock: { calls: unknown[][] } }) =>
+    fetch.mock.calls.filter(([url]) => url === PING).length;
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it("pings after a stored run that inserted nothing, since source status still changed", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const fetch = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+      String(input) === PING ? new Response("{}") : Response.json({ inserted: 0 }),
+    );
+    const run = await runSource(wired, src, { ai: false, body: tiktok });
+    expect(run.stored).toBe(true);
+    expect(pinged(fetch)).toBe(1);
+  });
+
+  it("does not ping when the store fails; the queue retry will", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const fetch = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+      String(input) === PING ? new Response("{}") : new Response("down", { status: 503 }),
+    );
+    await expect(runSource(wired, src, { ai: false, body: tiktok })).rejects.toThrow(/503/);
+    expect(pinged(fetch)).toBe(0);
   });
 });

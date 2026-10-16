@@ -127,7 +127,7 @@ third-party pages or produced by a model: render them as text, never as HTML.
 | `USER_AGENT` | `api-changelog-watcher/0.1 (+…/watch)` | Sent with every fetch |
 | `MAX_AI_CALLS_PER_RUN` | `12` | AI summaries per source run |
 | `ENABLE_DEBUG` | `false` | Enables `/debug/*` |
-| `PORTFOLIO_REVALIDATE_URL` | `https://www.abikmaharjan.com.np/api/watch/revalidate/` | POSTed after a run inserts changes, so the portfolio's cached `/watch` republishes. Keep the trailing slash |
+| `PORTFOLIO_REVALIDATE_URL` | `https://www.abikmaharjan.com.np/api/watch/revalidate/` | POSTed after every run that writes to Supabase (new changes or just source status), so the portfolio's cached `/watch` republishes. Keep the trailing slash |
 
 Secrets (`wrangler secret put`, or `.dev.vars` locally):
 

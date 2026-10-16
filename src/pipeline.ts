@@ -251,12 +251,11 @@ export async function runSource(env: Env, src: SourceDef, opts: RunOptions = {})
   }
   if (nextSnapshot) await env.WATCH_KV.put(snapshotKey(src.id), JSON.stringify(nextSnapshot));
 
-  // Only when rows were actually new: a queue retry of a run that already
-  // stored finds its rows deduped (inserted 0) and stays quiet. Source status
-  // (last_checked_at, last_ok_at) changes every run and is left to the
-  // portfolio's hourly fallback -- its stale badge is a 24 h threshold, so a
-  // ping on each ok/error flip would not show anything sooner.
-  if (inserted) await revalidatePortfolio(env, src.id, inserted);
+  // After every stored run, not only ones that inserted rows: recordRun also
+  // writes the source's last_checked_at, last_ok_at and last_error, which the
+  // portfolio's source strip shows. A run whose store failed has thrown above
+  // and pings nothing; its retry will.
+  if (result.stored) await revalidatePortfolio(env, src.id, inserted ?? 0);
 
   const done = {
     ...fields,

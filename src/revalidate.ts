@@ -1,4 +1,4 @@
-// Tells the portfolio to republish /watch after a run wrote new rows.
+// Tells the portfolio to republish /watch after a run wrote to Supabase.
 // Its pages are prerendered and cached; without this they only catch up on
 // their own hourly timer, which runs on a different clock from our crons.
 // See ../portfolio/app/api/watch/revalidate/route.ts for the other side.
