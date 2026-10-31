@@ -22,7 +22,7 @@ export function sliceBetween(body: string, start: string, end: string, endInclus
  */
 export function extractMetaArticle(body: string): string {
   return sliceBetween(body, "<h1", 'id="developer_documentation_toolbar"').replace(
-    /(https:\/\/l\.facebook\.com\/l\.php\?u=[^&"]*)[^"]*/g,
+    /(https:\/\/l\.facebook\.com\/l\.php\?u=[^&"\s)]*)[^"\s)]*/g,
     "$1",
   );
 }

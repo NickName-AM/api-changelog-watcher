@@ -5,6 +5,7 @@ import linkedinRecent from "./fixtures/linkedin-recent.md?raw";
 import linkedinStatus from "./fixtures/linkedin-status.json?raw";
 import linkedinVersioning from "./fixtures/linkedin-versioning.md?raw";
 import metaLatest from "./fixtures/meta-graph-latest.html?raw";
+import metaLatestMd from "./fixtures/meta-graph-latest.md?raw";
 import metaOoc from "./fixtures/meta-graph-ooc.html?raw";
 import metaMarketing from "./fixtures/meta-marketing.md?raw";
 import metaStatus from "./fixtures/meta-status.json?raw";
@@ -22,6 +23,7 @@ async function parse(id: string, body: string): Promise<Parsed> {
 
 const CASES: [id: string, body: string, min: number][] = [
   ["meta-graph-latest", metaLatest, 10],
+  ["meta-graph-latest", metaLatestMd, 10],
   ["meta-graph-ooc", metaOoc, 2],
   ["meta-marketing", metaMarketing, 2],
   ["tiktok-dev", tiktok, 8],
@@ -66,6 +68,16 @@ describe("Meta", () => {
     expect(dep.text).toContain("Applies to v26.0+");
     // Nothing from the scripts and tracking pixels after the article.
     expect(entries.some((e) => e.text.includes("fbq("))).toBe(false);
+  });
+
+  it("parses the Markdown version page (Oct 2026 docs move) to the same keys as the HTML one", async () => {
+    const html = await parse("meta-graph-latest", metaLatest);
+    const md = await parse("meta-graph-latest", metaLatestMd);
+    expect(md.version).toBe("v26.0");
+    expect(md.entries.map((e) => e.key).sort()).toEqual(html.entries.map((e) => e.key).sort());
+    const dep = md.entries.find((e) => e.key.endsWith("commerce-order-management-api-deprecation"))!;
+    expect(dep.title).toBe("Graph API › Commerce Order Management API › Commerce Order Management API deprecation");
+    expect(dep.text).toContain("GET /{commerce-order-id}");
   });
 
   it("keys out-of-cycle notes by ISO date", async () => {
