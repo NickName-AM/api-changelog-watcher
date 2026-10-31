@@ -2,6 +2,7 @@ import { entryHash } from "../hash";
 import { MAX_ENTRY_TEXT, parseLooseDate, slug, truncate, uniqueKeys } from "../text";
 import type { Entry, Parsed } from "../types";
 import { splitHtml, type Section } from "./html";
+import { splitMarkdownTree } from "./markdown";
 
 const META_ORIGIN = "https://developers.facebook.com";
 
@@ -50,9 +51,16 @@ const META_PAGE = {
   stop: "#developer_documentation_toolbar, #devsite_footer",
 };
 
-/** M2: one entry per h2/h3/h4 section of the newest version's changelog. */
-export async function parseMetaVersionPage(html: string, pageUrl: string): Promise<Parsed> {
-  const { h1, sections } = await splitHtml(html, { ...META_PAGE, headings: "h2, h3, h4" });
+/**
+ * M2: one entry per h2/h3/h4 section of the newest version's changelog.
+ * Since Oct 2026 the version pages redirect to /documentation/... and answer
+ * with text/markdown; both shapes give the same heading paths, so keys match.
+ */
+export async function parseMetaVersionPage(body: string, pageUrl: string): Promise<Parsed> {
+  const isHtml = /<h1[\s>]/i.test(body);
+  const { h1, sections } = isHtml
+    ? await splitHtml(body, { ...META_PAGE, headings: "h2, h3, h4" })
+    : (({ title, sections }) => ({ h1: title, sections }))(splitMarkdownTree(body, 4));
   const vm = /version\s+(\d+\.\d+)/i.exec(h1) ?? /version(\d+\.\d+)/.exec(pageUrl);
   return { entries: await sectionsToEntries(sections, pageUrl), version: vm ? `v${vm[1]}` : undefined };
 }
