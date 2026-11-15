@@ -6,15 +6,21 @@ import { splitMarkdownTree } from "./markdown";
 
 const META_ORIGIN = "https://developers.facebook.com";
 
-/** M1: the changelog index only tells us the newest `versionNN.N` page. */
-export function resolveLatestGraphVersion(indexHtml: string): string {
-  let best: [number, number] | null = null;
-  for (const m of indexHtml.matchAll(/\/docs\/graph-api\/changelog\/version(\d+)\.(\d+)/g)) {
+/**
+ * M1: the changelog index only tells us the newest `versionNN.N` page.
+ * Since Nov 2026 the index redirects to /documentation/development/graph-api/changelog
+ * and answers with text/markdown linking to that path. Only versions that predate the
+ * move redirect from /docs/, so we return the newest link exactly as the index gives it.
+ */
+export function resolveLatestGraphVersion(indexBody: string): string {
+  let best: { v: [number, number]; path: string } | null = null;
+  const re = /\/(?:docs|documentation\/[\w-]+)\/graph-api\/changelog\/version(\d+)\.(\d+)/g;
+  for (const m of indexBody.matchAll(re)) {
     const v: [number, number] = [Number(m[1]), Number(m[2])];
-    if (!best || v[0] > best[0] || (v[0] === best[0] && v[1] > best[1])) best = v;
+    if (!best || v[0] > best.v[0] || (v[0] === best.v[0] && v[1] > best.v[1])) best = { v, path: m[0] };
   }
   if (!best) throw new Error("Meta changelog index: no versionNN.N link found");
-  return `${META_ORIGIN}/docs/graph-api/changelog/version${best[0]}.${best[1]}`;
+  return META_ORIGIN + best.path;
 }
 
 /**

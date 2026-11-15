@@ -4,6 +4,7 @@ import type { Parsed } from "../src/types";
 import linkedinRecent from "./fixtures/linkedin-recent.md?raw";
 import linkedinStatus from "./fixtures/linkedin-status.json?raw";
 import linkedinVersioning from "./fixtures/linkedin-versioning.md?raw";
+import metaIndexMd from "./fixtures/meta-graph-index.md?raw";
 import metaLatest from "./fixtures/meta-graph-latest.html?raw";
 import metaLatestMd from "./fixtures/meta-graph-latest.md?raw";
 import metaOoc from "./fixtures/meta-graph-ooc.html?raw";
@@ -91,6 +92,11 @@ describe("Meta", () => {
     const { resolveLatestGraphVersion } = await import("../src/parsers/meta");
     const html = '<a href="/docs/graph-api/changelog/version9.0">x</a><a href="/docs/graph-api/changelog/version26.0">y</a><a href="/docs/graph-api/changelog/version25.0">z</a>';
     expect(resolveLatestGraphVersion(html)).toBe("https://developers.facebook.com/docs/graph-api/changelog/version26.0");
+  });
+
+  it("resolves the newest Graph API version from the Markdown index", async () => {
+    const { resolveLatestGraphVersion } = await import("../src/parsers/meta");
+    expect(resolveLatestGraphVersion(metaIndexMd)).toBe("https://developers.facebook.com/documentation/development/graph-api/changelog/version27.0");
   });
 
   it("keys Marketing API sections by ISO date", async () => {
